@@ -67,6 +67,6 @@ for LID in TRN_LIDs:
     phoneLM = LM_models.Absdisc_Phoneme_LM(train_data[LID], phoneme_set[LID])
 
     for LID_2 in TGT_LIDs:
-        print('{:^7} > {:^7}: {:>14.2f}'.format(LID.upper(), LID_2.upper(), phoneLM.surprisal(test_data[LID_2])))
+        print('{:^7} > {:^7}: {:>14.2f}'.format(LID.upper(), LID_2.upper(), phoneLM.avg_surprisal(test_data[LID_2])))
 
     print()

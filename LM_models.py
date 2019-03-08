@@ -57,7 +57,6 @@ class Phoneme_LM:
             for ph2 in self.phoneme_set:
                 # if the phoneme bigram (ph1, ph2) has zero count, consider it zero-valued
                 Nb = self.BCOUNTS[(ph1, ph2)] if (ph1, ph2) in self.BCOUNTS else 0
-
                 # estimate prob for P(ph2 | ph1) with add 1 as a smoothing technique
                 self.P[ph1][ph2] = (Nb + 1)/(Nu + L)
 
@@ -69,28 +68,40 @@ class Phoneme_LM:
 
     def perplexity(self, test_corpus):
         """Compute the perplexity of a test corpus."""
+        surprisal_values = self.surprisal_values(test_corpus)
+        avg_surprisal = sum(surprisal_values)/len(surprisal_values)
+        PP = math.pow(2, ((1/M)*avg_surprisal))
+        return PP
 
-        logProbs = 0
-        M = 0
+
+    def avg_surprisal(self, test_corpus):
+        """Compute the avg surprisal of a test corpus."""
+        surprisal_values = self.surprisal_values(test_corpus)
+        avg = sum(surprisal_values)/len(surprisal_values)
+        return avg
+
+
+    def surprisal_values(self, test_corpus):
+        """Compute the surprisal of each phoneme test corpus and return a list."""
+
+        surprisal_values = list()
 
         for word in test_corpus:
             for i in range(1, len(word)):
                 ph_h, ph_i = word[i - 1], word[i]
-
                 # check if test phoneme is out-of-set
                 if ph_h not in self.phoneme_set:   ph_h = '$'
                 if ph_i not in self.phoneme_set:   ph_i = '$'
 
-                logProbs += self.logP(ph_h, ph_i)
-                M += 1
+                surprisal_values.append(self.unit_surprisal(ph_h, ph_i))
 
-        PP = math.pow(2, ((-1/M)*logProbs))
-        return PP
+        return surprisal_values
 
 
-    def surprisal(self, test_corpus):
-        """Compute the average surprisal of a test corpus."""
-        return math.log(self.perplexity(test_corpus), 2)
+    def unit_surprisal(self, ph1, ph2):
+        """Compute the surprisal of a phoneme unit."""
+
+        return -1*self.logP(ph1, ph2)
 
 
     def test(self, verbose=False):
